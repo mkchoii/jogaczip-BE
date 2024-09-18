@@ -1,0 +1,66 @@
+### 게시글 등록
+POST http://localhost:4000/api/groups/11/posts
+Content-Type: application/json
+
+{
+	"nickname": "John Doe",
+	"title": "My Second Post",
+	"content": "This is the content of my second post.",
+	"postPassword": "post1234",
+	"groupPassword": "1234",
+	"imageUrl": "http://example.com/image.jpg",
+	"tags": ["tag1", "tag2"],
+	"location": "New York",
+	"moment": "2024-02-21",
+	"isPublic": false
+}
+
+### 게시글 목록 조회
+GET http://localhost:3000/api/groups/2/posts
+
+### 게시글 최신순 조회
+GET http://localhost:3000/api/groups/2/posts?sortBy=latest
+
+### 게시글 댓글순 조회
+GET http://localhost:3000/api/groups/2/posts?sortBy=mostCommented
+
+### 게시글 수정
+PUT http://localhost:3000/api/posts/1
+Content-Type: application/json
+
+{
+	"nickname": "James",
+	"title": "second title",
+	"content": "second content",
+	"postPassword": "post1234",
+	"imageUrl": "http://example.com/image.jpg",
+	"tags": [ "tag1", "tag2" ],
+	"location": "Seoul",
+	"moment": "2024-03-22",
+	"isPublic": true
+}
+
+### 게시글 삭제
+DELETE http://localhost:3000/api/posts/25
+Content-Type: application/json
+
+{
+  "postPassword": "post1234"
+}
+
+### 게시글 상세 정보 조회
+GET http://localhost:3000/api/posts/26
+
+### 게시글 조회 권한 확인
+POST http://localhost:3000/api/posts/27/verify-password
+Content-Type: application/json
+
+{
+  "password": "post1234"
+}
+
+### 게시글 공감하기
+POST http://localhost:3000/api/posts/25/like
+
+### 게시글 공개 여부 확인
+GET http://localhost:3000/api/posts/25/is-public

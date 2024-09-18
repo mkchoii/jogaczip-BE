@@ -1,0 +1,30 @@
+### 댓글 등록
+POST http://localhost:3000/api/posts/25/comments
+Content-Type: application/json
+
+{
+  "nickname": "Hong gil dong",
+	"content": "Nice!",
+	"password": "comment12345"
+}
+
+### 댓글 목록 조회
+GET http://localhost:3000/api/posts/25/comments
+
+### 댓글 수정
+PUT http://localhost:3000/api/comments/1
+Content-Type: application/json
+
+{
+  "nickname": "Kim gil dong",
+	"content": "Nice!",
+	"password": "comment1234"
+}
+
+### 댓글 삭제
+DELETE http://localhost:3000/api/comments/2
+Content-Type: application/json
+
+{
+	"password": "comment12345"
+}
