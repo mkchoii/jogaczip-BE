@@ -5,16 +5,16 @@ const groupController = express.Router();
 
 // 그룹 등록 라우터
 groupController.post('/', async (req, res) => {
-    const { name, imageUrl, description, isPublic, password } = req.body;
+    const { name, imageUrl, introduction, isPublic, password } = req.body;
 
     const sql = `
-        INSERT INTO groups (name, imageUrl, description, isPublic, password, createdAt)
+        INSERT INTO groups (name, imageUrl, introduction, isPublic, password, createdAt)
         VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `;
 
     try {
         const result = await new Promise((resolve, reject) => {
-            db.run(sql, [name, imageUrl, description, isPublic, password], function(err) {
+            db.run(sql, [name, imageUrl, introduction, isPublic, password], function(err) {
                 if (err) {
                     return reject(err);
                 }
@@ -68,7 +68,7 @@ groupController.get('/', async (req, res) => {
 
     // 검색어 필터링 추가
     if (keyword) {
-        sql += ' WHERE name LIKE ? OR description LIKE ?';
+        sql += ' WHERE name LIKE ? OR introduction LIKE ?';
         params.push(`%${keyword}%`, `%${keyword}%`);
         whereClauseAdded = true;
     }
@@ -114,7 +114,7 @@ groupController.get('/', async (req, res) => {
                 id: row.id,
                 name: row.name,
                 imageUrl: row.imageUrl,
-                description: row.description,
+                introduction: row.introduction,
                 isPublic: row.isPublic,
                 dDay: diffDays,
                 badgeCount: row.badges ? row.badges.split(',').length : 0, // 배지 개수
@@ -176,7 +176,7 @@ groupController.post('/:groupId/like', (req, res) => {
 // 그룹 수정 라우터
 groupController.put('/:groupId', async (req, res) => {
     const { groupId } = req.params;
-    const { name, imageUrl, description, isPublic, password } = req.body;
+    const { name, imageUrl, introduction, isPublic, password } = req.body;
 
     // 비밀번호 확인
     const checkPasswordSql = 'SELECT password FROM groups WHERE id = ?';
@@ -190,13 +190,13 @@ groupController.put('/:groupId', async (req, res) => {
 
         const updateSql = `
             UPDATE groups
-            SET name = ?, imageUrl = ?, description = ?, isPublic = ?
+            SET name = ?, imageUrl = ?, introduction = ?, isPublic = ?
             WHERE id = ?
         `;
 
         try {
             await new Promise((resolve, reject) => {
-                db.run(updateSql, [name, imageUrl, description, isPublic, groupId], function(err) {
+                db.run(updateSql, [name, imageUrl, introduction, isPublic, groupId], function(err) {
                     if (err) {
                         return reject(err);
                     }
@@ -344,7 +344,7 @@ groupController.get('/:id', async (req, res) => {
             id: group.id,
             name: group.name,
             imageUrl: group.imageUrl,
-            description: group.description,
+            introduction: group.introduction,
             isPublic: group.isPublic,
             dDay: diffDays,
             badges: badges,

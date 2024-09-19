@@ -12,7 +12,7 @@ const createGroupsTable = () => {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             imageUrl TEXT NOT NULL,
-            description TEXT,
+            introduction TEXT,
             isPublic BOOLEAN NOT NULL,
             password TEXT NOT NULL,
             likeCount INTEGER DEFAULT 0, 
