@@ -136,41 +136,89 @@ groupController.get('/', async (req, res) => {
 });
 
 // 그룹 공감하기 라우터
-groupController.post('/:groupId/like', (req, res) => {
+groupController.post('/:groupId/like', async (req, res) => {
     const { groupId } = req.params;
 
-    const sql = 'UPDATE groups SET likeCount = likeCount + 1 WHERE id = ?';
-    db.run(sql, [groupId], async function(err) {
-        if (err) {
-            console.error("공감 추가 오류:", err.message);
-            return res.status(500).json({ error: '공감을 추가하는 데 실패했습니다.' });
-        }
+    // 그룹 존재 여부 확인 쿼리
+    const checkGroupSql = `
+        SELECT id
+        FROM groups
+        WHERE id = ?
+    `;
 
-        // 배지 획득 여부 확인
-        const badgeCheckSql = 'SELECT badges, likeCount FROM groups WHERE id = ?';
-        db.get(badgeCheckSql, [groupId], (err, row) => {
-            if (err) {
-                console.error("배지 조회 오류:", err.message);
-            } else {
-                // 배지가 없고 공감 수가 10,000개 이상일 때만 '인기 그룹' 배지 증가
-                if (!row.badges.includes('인기 그룹') && row.likeCount >= 10000) {
-                    const badgeName = '인기 그룹'; // 배지 이름 설정
-                    const badgeUpdateSql = `
-                        UPDATE groups 
-                        SET badges = ?
-                        WHERE id = ?
-                    `;
-                    db.run(badgeUpdateSql, [badgeName, groupId], (err) => {
-                        if (err) {
-                            console.error("배지 수 업데이트 오류:", err.message);
-                        }
-                    });
+    // 그룹 공감 수 증가 쿼리
+    const updateLikeCountSql = `
+        UPDATE groups
+        SET likeCount = likeCount + 1
+        WHERE id = ?
+    `;
+
+    // 배지 업데이트 쿼리
+    const updateBadgeSql = `
+        UPDATE groups
+        SET badges = ?
+        WHERE id = ? AND badges NOT LIKE '%인기 그룹%'
+    `;
+
+    try {
+        // 그룹 존재 여부 확인
+        const group = await new Promise((resolve, reject) => {
+            db.get(checkGroupSql, [groupId], (err, row) => {
+                if (err) {
+                    return reject(err);
                 }
-            }
+                resolve(row);
+            });
         });
 
-        res.status(200).json({ message: '공감이 추가되었습니다.' });
-    });
+        // 그룹이 존재하지 않는 경우
+        if (!group) {
+            return res.status(404).json({ message: '존재하지 않는 그룹입니다' });
+        }
+
+        // 그룹 공감 수 증가
+        await new Promise((resolve, reject) => {
+            db.run(updateLikeCountSql, [groupId], function(err) {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(this.changes);
+            });
+        });
+
+        // 그룹의 총 공감 수 조회
+        const totalLikesSql = `
+            SELECT likeCount
+            FROM groups
+            WHERE id = ?
+        `;
+
+        const groupData = await new Promise((resolve, reject) => {
+            db.get(totalLikesSql, [groupId], (err, row) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(row);
+            });
+        });
+
+        // 총 공감 수가 10,000 이상인 경우 배지 부여
+        if (groupData.likeCount >= 10000) {
+            await new Promise((resolve, reject) => {
+                db.run(updateBadgeSql, ['인기 그룹', groupId], function(err) {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve(this.changes);
+                });
+            });
+        }
+
+        res.status(200).json({ message: '그룹 공감하기 성공' });
+    } catch (err) {
+        console.error("그룹 공감 오류:", err.message);
+        res.status(500).json({ message: '그룹 공감하기에 실패했습니다.' });
+    }
 });
 
 // 그룹 수정 라우터
